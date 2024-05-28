@@ -1,11 +1,12 @@
 "use client";
 
-import { useCompletion } from "ai/react";
+import {useChat, useCompletion} from "ai/react";
 
 export default function Page() {
-  const { completion, input, handleInputChange, handleSubmit } = useCompletion({
-    api: "/api/completion",
+  const { messages, input, handleInputChange, handleSubmit } = useChat({
+    api: "/api/chat",
   });
+    console.log("🚀  ",messages)
 
   return (
     <form onSubmit={handleSubmit}>
@@ -16,7 +17,13 @@ export default function Page() {
         id="input"
       />
       <button type="submit">Submit</button>
-      <div>{completion}</div>
+        {
+            messages.map(message => {
+                return <span>
+                    {message.content}
+                </span>
+            })
+        }
     </form>
   );
 }
