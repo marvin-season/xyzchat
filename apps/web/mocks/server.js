@@ -3,4 +3,4 @@ import { handlers } from "./handlers.js";
 
 const httpServer = createServer(...handlers);
 
-httpServer.listen(3000);
+httpServer.listen(3001);
