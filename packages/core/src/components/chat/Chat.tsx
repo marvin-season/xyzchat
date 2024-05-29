@@ -1,6 +1,6 @@
 export type ChatProps = {
   children: React.ReactNode[];
-  interact: React.ReactNode[];
+  interact: React.ReactNode;
 };
 
 export function Chat({ children, interact }: ChatProps): JSX.Element {
