@@ -4,8 +4,9 @@ import { useCompletion } from "ai/react";
 import { ThemeProvider, HumanInput } from "@xyzchat/components";
 
 export default function Chat() {
-  const { completion, input, handleInputChange, handleSubmit } =
-    useCompletion();
+  const { completion, input, handleInputChange, handleSubmit } = useCompletion({
+    api: "/api/chat",
+  });
 
   return (
     <ThemeProvider>
