@@ -5,7 +5,7 @@ import { ThemeProvider, HumanInput } from "@xyzchat/components";
 
 export default function Chat() {
   const { completion, input, handleInputChange, handleSubmit } = useCompletion({
-    api: "/api/chat",
+    // api: "/api/chat",
   });
 
   return (
