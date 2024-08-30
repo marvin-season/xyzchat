@@ -32,16 +32,40 @@ export const maxDuration = 30;
 const openai = createOpenAI({
   // example fetch wrapper that logs the input to the API call:
   fetch: async (url, options) => {
-    console.log("URL", url);
-    console.log("Headers", JSON.stringify(options!.headers, null, 2));
-    console.log(
-      `Body ${JSON.stringify(JSON.parse(options!.body! as string), null, 2)}`
-    );
-    const response = await fetch(url, options);
+    // console.log("URL", url);
+    // console.log("Headers", JSON.stringify(options!.headers, null, 2));
+    // console.log(
+    //   `Body ${JSON.stringify(JSON.parse(options!.body! as string), null, 2)}`
+    // );
+    const originalResponse = await fetch(url, options);
 
-    console.log("Response", response.status, response.body);
+    const transformedStream = new ReadableStream({
+      async start(controller) {
+        const reader = originalResponse.body!.getReader();
 
-    return response;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const decoder = new TextDecoder();
+          // Apply your transformation here
+          console.log("Transforming", decoder.decode(value));
+
+          // Enqueue the transformed value to the new stream
+          controller.enqueue(value);
+        }
+
+        controller.close();
+      },
+    });
+
+    // console.log("Response", response.status, response.body);
+
+    return new Response(transformedStream, {
+      headers: originalResponse.headers,
+      status: originalResponse.status,
+      statusText: originalResponse.statusText,
+    });
   },
 
   baseURL: "http://10.0.5.68:8000/v1",
