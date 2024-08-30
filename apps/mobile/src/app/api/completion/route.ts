@@ -37,7 +37,24 @@ const openai = createOpenAI({
     // console.log(
     //   `Body ${JSON.stringify(JSON.parse(options!.body! as string), null, 2)}`
     // );
-    const originalResponse = await fetch(url, options);
+
+    const query = JSON.parse(options!.body! as string).messages[0].content;
+
+    const originalResponse = await fetch(
+      "https://smartvision.dcclouds.com/aiapp/i7owy6eh3jon1/api/apps/chat",
+      {
+        ...options,
+        body: JSON.stringify({
+          app_id: "1772",
+          files: [],
+          inputs: {},
+          query,
+          referenced_query: "",
+          response_mode: "streaming",
+          stream: true,
+        }),
+      }
+    );
 
     const transformedStream = new ReadableStream({
       async start(controller) {
@@ -47,12 +64,43 @@ const openai = createOpenAI({
           const { done, value } = await reader.read();
           if (done) break;
 
-          const decoder = new TextDecoder();
-          // Apply your transformation here
-          console.log("Transforming", decoder.decode(value));
+          try {
+            const decoder = new TextDecoder();
+            const encoder = new TextEncoder();
+            const text = decoder.decode(value).replace("data: ", "");
 
-          // Enqueue the transformed value to the new stream
-          controller.enqueue(value);
+            const oJSON = JSON.parse(text);
+
+            const tJSON = {
+              id: oJSON.id,
+              object: "chat.completion.chunk",
+              created: new Date(),
+              model: "qwen2-7b-instruct",
+              choices: [
+                {
+                  index: 0,
+                  delta: {
+                    content: oJSON.answer,
+                  },
+                  logprobs: null,
+                  finish_reason: null,
+                },
+              ],
+              meta: {
+                ...oJSON,
+              },
+            };
+
+            const transformedText = encoder.encode(
+              `data: ${JSON.stringify(tJSON)}\n\n`
+            );
+            // Enqueue the transformed value to the new stream
+            controller.enqueue(transformedText);
+          } catch (error) {
+            console.error("Error", error, text);
+            controller.error(error);
+            break;
+          }
         }
 
         controller.close();
@@ -68,8 +116,8 @@ const openai = createOpenAI({
     });
   },
 
-  baseURL: "http://10.0.5.68:8000/v1",
-  apiKey: "empty",
+  baseURL: "http://10.3.73.98:8000/v1",
+  apiKey: "b68142afb9954d31af589032577d6d0f",
 });
 
 export async function POST(req: Request) {
@@ -80,7 +128,7 @@ export async function POST(req: Request) {
   data.append("call started");
 
   const result = await streamText({
-    model: openai("qwen2-7b-instruct"),
+    model: openai("Qwen2-1.5B-Instruct"),
     maxTokens: 2000,
     prompt,
     onFinish: () => {

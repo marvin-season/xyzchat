@@ -2,11 +2,16 @@
 
 import { useCompletion } from "ai/react";
 import { ThemeProvider, HumanInput } from "@xyzchat/components";
+import { useEffect } from "react";
 
 export default function Chat() {
   const { completion, input, handleInputChange, handleSubmit } = useCompletion({
     // api: "/api/chat",
   });
+
+  useEffect(() => {
+    console.log(completion);
+  }, [completion]);
 
   return (
     <ThemeProvider>
